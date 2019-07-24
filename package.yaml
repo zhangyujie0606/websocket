@@ -5,14 +5,15 @@ keywords:
   - network
 license: MIT                                   # GPLv2，LGPLv2.1，MIT，Apache license v2.0，BSD
 
+depends:
+  - cJSON
+
 source_file:
   - src/*.c
 
 build_config:
   include:
     - include
-    - ../transport/include
-    - ../mbedtls/configs
   cflag: ""                             # C 编译器所需要要的编译参数
   define:                                      # 宏定义
     - CONFIG_USING_TLS

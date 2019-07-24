@@ -6,10 +6,10 @@
 #include "aos/kernel.h"
 #include "aos/log.h"
 #include "aos/debug.h"
-#include "transport_ws.h"
-#include "transport_tcp.h"
+#include "transport/transport_ws.h"
+#include "transport/transport_tcp.h"
 #ifdef CONFIG_USING_TLS
-#include "transport_ssl.h"
+#include "transport/transport_ssl.h"
 #endif
 
 #define TAG "websocket"
