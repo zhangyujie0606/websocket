@@ -49,7 +49,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
-#include "transport/transport_utils.h"
 #endif
 
 #include <aos/network.h>
