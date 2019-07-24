@@ -1,32 +1,72 @@
 
-# Paho MQTT 介绍
+# websocket - Tiny, cross platform websocket client C library.
 
-Paho MQTT 是由 Eclipse 开发的一套基于 MQTT 协议的客户端程序。
+### Features
 
+- No additional dependecies
+- Single header library interface librws.h with public methods
+- Thread safe
+- Send/receive logic in background thread
 
-### MQTT 协议
-
-MQTT（Message Queuing Telemetry Transport，消息队列遥测传输协议），一个轻量的发布订阅（publish/subscribe）模式消息传输协议，该协议构建于 TCP/IP 协议上，专门针对低带宽和不稳定网络环境的物联网应用设计。MQTT 最大优点在于，可以极少的代码和有限的带宽，为连接远程设备提供实时可靠的消息服务。作为一种低开销、低带宽占用的即时通讯协议，使其在物联网、小型设备、移动应用等方面有较广泛的应用。
-
-MQTT 协议工作在低带宽、不可靠的网络的远程传感器和控制设备通讯而设计的协议，它具有以下主要的几项特性：
-
-1. 使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。
-2. 对负载内容屏蔽的消息传输。
-3. 使用TCP/IP提供网络连接。
-4. 三种消息发布服务质量：
-   - “至多一次”：消息发布完全依赖底层 TCP/IP 网络。会发生消息丢失或重复。这一级别可用于如下情况，环境传感器数据，丢失一次读记录无所谓，因为不久后还会有第二次发送。这一种方式主要普通APP的推送，倘若你的智能设备在消息推送时未联网，推送过去没收到，再次联网也就收不到了。
-   - “至少一次”：确保消息到达，但消息重复可能会发生。
-   - “只有一次”：确保消息到达一次。在一些要求比较严格的计费系统中，可以使用此级别。在计费系统中，消息重复或丢失会导致不正确的结果。这种最高质量的消息发布服务还可以用于即时通讯类的APP的推送，确保用户收到且只会收到一次。
-5. 小型传输，开销很小（固定长度的头部是2字节），协议交换最小化，以降低网络流量。
-6. 使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制：
-   - Last Will：即遗言机制，用于通知同一主题下的其他设备发送遗言的设备已经断开了连接。
-   - Testament：遗嘱机制，功能类似于Last Will。
-   -
-## MQTT 客户端功能
-
-一个使用MQTT协议的应用程序或者设备，它总是建立到服务器的网络连接。客户端可以：
-
-- 与服务器建立连接
-- 发布其他客户端可能会订阅的信息
-- 接收其它客户端发布的消息
-- 退订已订阅的消息
+### Example
+##### Create and store websocket object handle
+```c
+  // Define variable or field for socket handle
+  rws_socket _socket = NULL;
+  ............
+  // Create socket object
+  _socket = rws_socket_create();
+```
+##### Set websocket connection url
+```c
+// Combined url: "ws://echo.websocket.org:80/"
+rws_socket_set_scheme(_socket, "ws");
+rws_socket_set_host(_socket, "echo.websocket.org");
+rws_socket_set_port(_socket, 80);
+rws_socket_set_path(_socket, "/");
+```
+##### Set websocket responce callbacks
+Warning: ```rws_socket_set_on_disconnected``` is required
+```c
+// Main callbacks functions
+// callback trigered on socket disconnected with/without error
+static void on_socket_disconnected(rws_socket socket) {
+  // process error
+  rws_error error = rws_socket_get_error(socket);
+  if (error) { 
+    printf("\nSocket disconnect with code, error: %i, %s", rws_error_get_code(error), rws_error_get_description(error)); 
+  }
+  // forget about this socket object, due to next disconnection sequence
+  _socket = NULL;
+}
+// callback trigered on socket connected and handshake done
+static void on_socket_connected(rws_socket socket) {
+  printf("\nSocket connected");
+}
+// callback trigered on socket received text
+static void on_socket_received_text(rws_socket socket, const char * text, const unsigned int length) {
+  printf("\nSocket text: %s", text);
+}
+..................
+// Set socket callbacks
+rws_socket_set_on_disconnected(_socket, &on_socket_disconnected); // required
+rws_socket_set_on_connected(_socket, &on_socket_connected);
+rws_socket_set_on_received_text(_socket, &on_socket_received_text);
+```
+##### Connect
+```c
+rws_socket_connect(_socket);
+```
+##### Send message to websocket
+```c
+const char * example_text =
+  "{\"version\":\"1.0\",\"supportedConnectionTypes\":[\"websocket\"],\"minimumVersion\":\"1.0\",\"channel\":\"/meta/handshake\"}";
+rws_socket_send_text(_socket, example_text);
+```
+##### Disconnect or delete websocket object
+Since socket can be connected and we need to send disconnect mesage, not just lazy close, need to wait and than delete object.
+Thats why just call ```rws_socket_disconnect_and_release```, its thread safe, and forget about this socket object.
+```c
+rws_socket_disconnect_and_release(_socket);
+_socket = NULL;
+```
