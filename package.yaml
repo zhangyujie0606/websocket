@@ -11,7 +11,7 @@ source_file:
 build_config:
   include:
     - include
-  cflag: "v 1.1.0"                             # C 编译器所需要要的编译参数
+  cflag: "v 1.2.0"                             # C 编译器所需要要的编译参数
   define:                                      # 宏定义
     - CONFIG_USING_TLS
 
